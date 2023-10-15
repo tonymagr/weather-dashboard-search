@@ -46,6 +46,11 @@ aside {
     margin-left: 0.5rem;
     float: left;
 }
+.inline-icon {
+    height: auto;
+    width: 30px;
+    float: inline-end;
+}
 .justify-end {
     justify-content: end;
 }

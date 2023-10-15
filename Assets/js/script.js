@@ -81,18 +81,17 @@ async function get5DayForecast () {
     longitude = data.city.coord.lon;
 
     // Load 5-Day Forecast array
-    // "hourAdj = Math.ceil(8 - (currDate.getHours() / 3))"  explained:
+    // "hourAdj = Math.ceil(8 - (currDate.getHours() / 3) - 1)"  explained:
     //                         Depending on user's hour of day, set hour adjuster to find Noon of 
     //                         forecast days.
-    // "i * 8 + hourAdj"  explained:  8 temp data items are returned per day in 3-hour increments.
+    // "(i + 1) * 8 - hourAdj"  explained:  8 temp data items are returned per day in 3-hour increments.
     //                         Want daily Noon temp, which is found offset by hour adjuster.
-    hourAdj = Math.ceil(8 - (currDate.getHours() / 3));
+    hourAdj = Math.ceil(8 - (currDate.getHours() / 3) - 1);
     console.log("hourAdj:", hourAdj);
 
     for (let i = 0; i < 5; i++) {
-      forecTemp = data["list"][i * 8 + hourAdj]["main"]["temp"];
-      // weatherDateInp = data["list"][i * 8 + 3]["dt_txt"].slice(0 , 10);
-      weatherDateInp = data["list"][i * 8 + hourAdj]["dt_txt"];
+      forecTemp = data["list"][(i + 1) * 8 - hourAdj]["main"]["temp"];
+      weatherDateInp = data["list"][(i + 1) * 8 - hourAdj]["dt_txt"];
       console.log("weatherDateInp:", weatherDateInp);
       weatherDateConv = new Date(weatherDateInp).toLocaleDateString("en-US"); 
       fiveDayForecast.push({temp: forecTemp,
