@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <link rel="stylesheet" href="./Assets/css/reset.css"/>
+    <link rel="stylesheet" href="./Assets/CSS/style.css"/>
+    <title>Weather Dashboard</title>
+</head>
+<body>
+    <header>
+        <h1 class="p-2">Weather Dashboard</h1>
+    </header>
+    <main>
+        <aside>
+            <!-- <section class="unbordered-box pe-4">Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.
+            </section> -->
+            <section class="flex-row col-5 bg-light p-2 align-middle-ovrd align-center half-height">
+                <!-- <form id="searches-form" class="card-use card-rounded bg-link p-0"> -->
+                <form id="city-search">
+                    <label class="large-text" for="search-city">Search for a City:</label>
+                    <input type="text" id="search-city" name="search-city" class="mid-text" placeholder="Enter City, State abbrev."/>
+                    <button class="btn btn-blue btn-basic">Search</button>
+                </form>
+            </section>
+        </aside>
+        <section class="display-flex">
+            <section class="col-11 bordered-box">
+                <h2>City and Date</h2>
+                <p>Temp: 76&deg</p>
+                <p>Wind: 8.5 MPH</p>
+                <p>Humidity: 44%</p>
+            </section>
+        </section>
+        <section class="display-flex">
+            <section class="col-11 unbordered-box">
+                <h3>5-Day Forecast:</h3>
+            </section>
+        </section>
+    </main>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="./Assets/js/script.js"></script>
+</body>
+</html>
