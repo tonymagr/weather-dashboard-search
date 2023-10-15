@@ -9,7 +9,10 @@ const searchCityEl = $("#search-city");
 const apiKey = "2829bb7521a6e57fb0393e7a19834658";
 // variables
 let city, state, pos, cityNameInp, requestUrl5Day, requestUrlCurr, lattitude, longitude;
+let weatherDateInp, weatherDateConv, hourAdj;
 let reqState = false;
+const currDate = new Date();
+let fiveDayForecast = [];
 
 //function definitions
 
@@ -48,9 +51,9 @@ function citySearchSubmit(event) {
   $('input[type="text"]').val("");
   // Construct URL for city-state or just city
   if (reqState) {
-    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast?q=${city},${state},USA&appid=${apiKey}`;
+    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?q=${city},${state},USA&units=imperial&appid=${apiKey}`;
   } else {
-    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast?q=${city},USA&appid=${apiKey}`;
+    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast?q=${city},USA&units=imperial&appid=${apiKey}`;
   }
   get5DayAndCurr();
 }
@@ -59,7 +62,7 @@ async function get5DayAndCurr () {
   console.log("requestUrl5Day",requestUrl5Day);
   await get5DayForecast();
 
-  requestUrlCurr = `https://api.openweathermap.org/data/2.5/weather?lat=${lattitude}&lon=${longitude}&appid=${apiKey}`;
+  requestUrlCurr = `https://api.openweathermap.org/data/2.5/weather?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
   console.log("requestUrlCurr",requestUrlCurr);
   getCurrentWeath();
 }
@@ -72,12 +75,31 @@ async function get5DayForecast () {
       console.log(`Open weather call for forecast: ${response.statusText}`);
       return;
     }
-    //Display result fields
+    //Access result fields
     console.log(data);
     lattitude = data.city.coord.lat;
     longitude = data.city.coord.lon;
-    console.log(lattitude);
-    console.log(longitude);
+
+    // Load 5-Day Forecast array
+    // "hourAdj = Math.ceil(8 - (currDate.getHours() / 3))"  explained:
+    //                         Depending on user's hour of day, set hour adjuster to find Noon of 
+    //                         forecast days.
+    // "i * 8 + hourAdj"  explained:  8 temp data items are returned per day in 3-hour increments.
+    //                         Want daily Noon temp, which is found offset by hour adjuster.
+    hourAdj = Math.ceil(8 - (currDate.getHours() / 3));
+    console.log("hourAdj:", hourAdj);
+
+    for (let i = 0; i < 5; i++) {
+      forecTemp = data["list"][i * 8 + hourAdj]["main"]["temp"];
+      // weatherDateInp = data["list"][i * 8 + 3]["dt_txt"].slice(0 , 10);
+      weatherDateInp = data["list"][i * 8 + hourAdj]["dt_txt"];
+      console.log("weatherDateInp:", weatherDateInp);
+      weatherDateConv = new Date(weatherDateInp).toLocaleDateString("en-US"); 
+      fiveDayForecast.push({temp: forecTemp,
+                            date: weatherDateConv
+                          });
+    }
+    console.log("temp array", fiveDayForecast);
   }
   catch (err) {
     console.log(`Open weather call for forecast: JSON or fetch error`);
