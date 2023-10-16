@@ -18,32 +18,38 @@
         <h1 class="p-2">Weather Dashboard</h1>
     </header>
     <main>
-        <aside>
-            <!-- <section class="unbordered-box pe-4">Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.  Search for a City - END.
-            </section> -->
-            <section class="flex-row col-5 bg-light p-2 align-middle-ovrd align-center half-height">
+        <aside id="prev-cities">
+            <section class="display-flex col-12 bg-light p-2 align-middle-ovrd align-center height-160">
                 <!-- <form id="searches-form" class="card-use card-rounded bg-link p-0"> -->
                 <form id="city-search">
                     <label class="large-text" for="search-city">Search for a City:</label>
                     <input type="text" id="search-city" name="search-city" class="mid-text" placeholder="Enter City, State abbrev."/>
+                    <br>
                     <button class="btn btn-blue btn-basic">Search</button>
                 </form>
             </section>
         </aside>
         <section class="display-flex">
-            <section class="col-11 bordered-box">
-                <section class="col-4">
-                    <img src="https://openweathermap.org/img/wn/10d@2x.png" class="col-2 inline-icon"/>
-                    <h2 class="col-9">City and Date</h2>
-                    <p>Temp: 76&deg</p>
-                    <p>Wind: 8.5 MPH</p>
-                    <p>Humidity: 44%</p>
+            <section class="col-11 bordered-box height-160">
+                <section class="col-7">
+                    <h2 id="city-date"></h2>
+                    <img id="curr-icon-img" class="icon-size"/>
+                    <p id="curr-temp"></p>
+                    <p id="curr-wind"></p>
+                    <p id="curr-humidity"></p>
                 </section>
             </section>
         </section>
         <section class="display-flex">
             <section class="col-11 unbordered-box">
                 <h3>5-Day Forecast:</h3>
+                <section class="display-flex p-1 auto-height">
+                    <section id="forecast-day-0" class="col-2 mlr-2 bg-dark2 text-white"></section>
+                    <section id="forecast-day-1" class="col-2 mlr-2 bg-dark2 text-white"></section>
+                    <section id="forecast-day-2" class="col-2 mlr-2 bg-dark2 text-white"></section>
+                    <section id="forecast-day-3" class="col-2 mlr-2 bg-dark2 text-white"></section>
+                    <section id="forecast-day-4" class="col-2 mlr-2 bg-dark2 text-white"></section>                   
+                </section>
             </section>
         </section>
     </main>
