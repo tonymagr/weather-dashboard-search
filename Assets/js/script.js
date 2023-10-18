@@ -8,11 +8,16 @@ const prevCitiesEL = $("#prev-cities");
 
 // constants and variables
 const apiKey = "2829bb7521a6e57fb0393e7a19834658";
-let city, state, pos, cityNameInp, requestUrl5Day, requestUrlCurr, lattitude, longitude;
+let city, state, pos, cityNameInp, requestUrl5Day, requestUrlCurr, lattitude, longitude, cityId;
 let weatherDateInp, weatherDateConv, hourAdj, todayDt, iconCode, weatherIconUrl, fiveDayForecast;
 let forecastIdx, windSpeed, humidPerc;
 let reqState = false;
+let reqLatLong = false;
 const currDate = new Date();
+
+//Local storage variables
+let locStorArray = [];
+let cities = {id:"", cityState: "", lat:"", long:""};
 
 //function definitions
 
@@ -46,12 +51,51 @@ function citySearchSubmit(event) {
   // Clear input fields
   $('input[type="text"]').val("");
   // Construct URL for city-state or just city
-  if (reqState) {
+  if (reqLatLong) {
+    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
+  } else if (reqState) {
     requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?q=${city},${state},USA&units=imperial&appid=${apiKey}`;
   } else {
     requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast?q=${city},USA&units=imperial&appid=${apiKey}`;
   }
   get5DayAndCurr();
+
+  // Check if this city was already searched; 
+  let tblIdx = locStorArray.findIndex(function(city) {
+    return city.id == cityId
+  });
+
+  // if not, do three or conditionally four things:
+  if (tblIdx === -1) {
+    // 1. Add to recent searches table
+    cities.id = cityId;
+    cities.cityState = cityNameInp;
+    cities.lat = lattitude;
+    cities.long = longitude;
+    locStorArray.push(cities);
+    // 2. Check if one over max 
+    if (locStorArray.length >= 9) {
+      // Remove first (oldest) item from array
+      locStorArray.shift();
+    }
+    // 3. Save updated array to storage
+    localStorage.setItem("city-searches", JSON.stringify(locStorArray));
+    // 4. Display previous search cities as buttons from array
+    renderPrevSearches();
+  }
+
+}
+
+function renderPrevSearches () {
+  // Clear previous searches display
+  prevCitiesEL.html("");
+  // prevSearchEl.addClass("strong-ovrd");  
+
+  // If there were any stored cities, create them in section 
+  $.each(locStorArray, function(i) {
+    prevCitiesEL.append(`<button id="btn-${i}">${locStorArray[i].cityState}</button>`);
+    // $("#btn" + i + "0").addClass("btn-basic view-button");
+  })
 }
 
 async function get5DayAndCurr () {
@@ -73,6 +117,8 @@ async function get5DayForecast () {
     console.log(data);
     lattitude = data.city.coord.lat;
     longitude = data.city.coord.lon;
+    cityId = data.city.id;
+    reqLatLong = true;
 
     // Load 5-Day Forecast array
     // "hourAdj = Math.ceil(currDate.getHours() / 3) - 1"  explained:
@@ -91,10 +137,8 @@ async function get5DayForecast () {
       forecastIdx = (i + 1) * 8 - hourAdj;
       forecastTemp = data["list"][forecastIdx]["main"]["temp"];
       weatherDateInp = data["list"][forecastIdx]["dt_txt"];
-      console.log("weatherDateInp:", weatherDateInp);
       weatherDateConv = new Date(weatherDateInp).toLocaleDateString("en-US");
       iconCode = data["list"][forecastIdx]["weather"]["0"]["icon"];
-      console.log(i,iconCode);
       windSpeed = data["list"][forecastIdx]["wind"]["speed"];
       humidPerc = data["list"][forecastIdx]["main"]["humidity"];
       fiveDayForecast.push({temp: forecastTemp,
@@ -147,11 +191,83 @@ async function getCurrentWeath () {
   }
 }
 
-// Main
-citySearchEl.on("submit",citySearchSubmit);
+// // Previous searches and storage management
+// // ----------------------------------------
 
-// Append blank section in aside below query box. Take away if there is history
-prevCitiesEL.append(`<section class="height-300 border-top"></section>`);
+// function searchNameFormSubmit(event) {
+//   // Prevent the default behavior
+//   event.preventDefault();
+  
+//   // Max saves reached
+//   if (locStorArray.length >= 7) {
+//   }
+
+//   // Save in local storage and internal array
+//   movieEntry.schName = searchName;
+//   movieEntry.movTitle = mTitle;
+//   movieEntry.yr = mYear;
+//   movieEntry.omdbUrl = requestURL;
+//   locStorArray.push(movieEntry);
+  
+//   localStorage.setItem("city-searches", JSON.stringify(locStorArray));
+
+//   // Clear and call to display updated movie searches
+//   renderPrevSearches();
+// }
+
+// prevSearchEl.on("click", function(event) {
+//   element = event.target;
+
+//   if (element.matches("button") && element.className.substring(10,30).trim() === "view-button") {
+//     // View movie info
+//     // Button IDs are in format btnx0 or btnx1 where x is the li row. Element/buttonid[3] is the 4th character.
+//     i = element.id[3];
+//     requestURL = locStorArray[i].omdbUrl
+
+//     renderAllMovieData();
+//   }
+
+//   if (element.matches("button") && element.className.substring(10,30).trim() === "delete-button") {
+//     // Delete saved search (li) row
+//     // Button IDs are in format btnx0 or btnx1 where x is the li row. Element/buttonid[3] is the 4th character.
+//     i = element.id[3];
+//     locStorArray.splice(i,1);
+//     // Call to remove item from local storage
+//     resetLocalStorage();
+
+//     // Redisplay form
+//     renderPrevSearches();
+//   }
+// });
+
+// function resetLocalStorage () {
+//   // Delete local storage, to be reloaded from saved array
+//   localStorage.removeItem("city-searches");
+
+//   // Reload local storage, at present with one less row after delete button
+//   for (i = 0; i < locStorArray.length; i++) {
+//     movieEntry.schName = locStorArray[i].schName;
+//     movieEntry.movTitle = locStorArray[i].movTitle;
+//     movieEntry.yr = locStorArray[i].yr;
+//     movieEntry.omdbUrl = locStorArray[i].omdbUrl;
+  
+//     localStorage.setItem("city-searches", JSON.stringify(locStorArray));
+//   }
+// }
+
+//-----
+// Main
+//-----
+
+// Retrieve city-searches array of "city-searches" objects from storage
+locStorArray = JSON.parse(localStorage.getItem("city-searches"));
+if (locStorArray === null) {
+  locStorArray = []
+}
+// Display previous search cities as buttons from array
+renderPrevSearches();
+
+citySearchEl.on("submit",citySearchSubmit);
 
 
 // - Throwaway
