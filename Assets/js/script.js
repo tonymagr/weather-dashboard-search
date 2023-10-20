@@ -8,26 +8,30 @@ const prevCitiesEL = $("#prev-cities");
 
 // constants and variables
 const apiKey = "2829bb7521a6e57fb0393e7a19834658";
-let city, state, pos, cityNameInp, requestUrl5Day, requestUrlCurr, lattitude, longitude, cityId;
+let i, city, state, pos, cityNameInp, requestUrl5Day, requestUrlCurr, lattitude, longitude, cityId;
 let weatherDateInp, weatherDateConv, hourAdj, todayDt, iconCode, weatherIconUrl, fiveDayForecast;
-let forecastIdx, windSpeed, humidPerc;
+let forecastIdx, windSpeed, humidPerc, foundPrev;
 let reqState = false;
 let reqLatLong = false;
 const currDate = new Date();
 
 //Local storage variables
 let locStorArray = [];
-let cities = {id:"", cityState: "", lat:"", long:""};
+let cityStage = {id: "", cityState: "", lat: "", long: ""};
 
 //function definitions
 
 //target functions
 
-function citySearchSubmit(event) {
+async function citySearchSubmit(event) {
+  console.log("---In citySearchSubmit");
   // Prevent the default behavior
   event.preventDefault();
 
   cityNameInp = searchCityEl.val().trim();
+  console.log("cityNameInp:",cityNameInp);
+  reqLatLong = false;
+  reqState = false;
 
   // Check for input errors
 
@@ -37,6 +41,7 @@ function citySearchSubmit(event) {
     return;
   }
   // Parse city name and state abbrev. if ", state abbrev" was entered.
+  console.log("reqState:",reqState);
   pos = cityNameInp.search(",");
   if (pos === -1) {
     reqState = false;
@@ -48,9 +53,13 @@ function citySearchSubmit(event) {
   if (reqState) {
     state = cityNameInp.slice(pos + 1, cityNameInp.length).trim();
   }
+  console.log("reqState:",reqState);
+
   // Clear input fields
   $('input[type="text"]').val("");
+
   // Construct URL for city-state or just city
+  console.log("reqLatLong:", reqLatLong);
   if (reqLatLong) {
     requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
   } else if (reqState) {
@@ -58,54 +67,77 @@ function citySearchSubmit(event) {
   } else {
     requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast?q=${city},USA&units=imperial&appid=${apiKey}`;
   }
-  get5DayAndCurr();
+
+  await get5DayAndCurr();
 
   // Check if this city was already searched; 
-  let tblIdx = locStorArray.findIndex(function(city) {
-    return city.id == cityId
-  });
+  foundPrev = false;
 
-  // if not, do three or conditionally four things:
-  if (tblIdx === -1) {
+  for (i = 0; i < locStorArray.length; i++) {
+    if (!foundPrev && cityId === locStorArray[i].id) {
+      foundPrev = true;
+    }
+  }
+  console.log("foundPrev:", foundPrev);
+  // let tblIdx = locStorArray.findIndex(function(city) {
+  //   console.log("Found in prev search-,city,",city,"locStorArray:",locStorArray,"cityId:",cityId);  
+  //   return city.id == cityId;
+  // });
+  // console.log("tblIdx:",tblIdx);
+  // if (tblIdx === -1) {
+
+  // if city was not already searched, do three or (conditionally) four things listed below:
+  if (!foundPrev) {
     // 1. Add to recent searches table
-    cities.id = cityId;
-    cities.cityState = cityNameInp;
-    cities.lat = lattitude;
-    cities.long = longitude;
-    locStorArray.push(cities);
+    console.log("cityStage:",cityStage);
+    console.log("locStorArray before push:",locStorArray);
+    cityStage.id = cityId;
+    cityStage.cityState = cityNameInp;
+    cityStage.lat = lattitude;
+    cityStage.long = longitude;
+    locStorArray.push(cityStage);
+    console.log("cityStage:",cityStage);
+    console.log("locStorArray after push:",locStorArray);
+    
     // 2. Check if one over max 
     if (locStorArray.length >= 9) {
       // Remove first (oldest) item from array
       locStorArray.shift();
+      console.log("locStorArray after shift:",locStorArray);
     }
     // 3. Save updated array to storage
     localStorage.setItem("city-searches", JSON.stringify(locStorArray));
-    // 4. Display previous search cities as buttons from array
-    renderPrevSearches();
-  }
+    console.log("locStorArray after setItem:",locStorArray);
+    // return;
 
+    // 4. Display previous search cityStage as buttons from array
+    // renderPrevSearches();
+  }
 }
 
 function renderPrevSearches () {
-  // Clear previous searches display
+  console.log("---In renderPrevSearches");
   prevCitiesEL.html("");
-  // prevSearchEl.addClass("strong-ovrd");  
+  console.log("locStorArray in render func:", locStorArray);
 
-  // If there were any stored cities, create them in section 
-  $.each(locStorArray, function(i) {
-    prevCitiesEL.append(`<button id="btn-${i}">${locStorArray[i].cityState}</button>`);
-    // $("#btn" + i + "0").addClass("btn-basic view-button");
-  })
+  for (i = 0; i < locStorArray.length; i++) {
+    let holdCityState = locStorArray[i].cityState;
+    prevCitiesEL.append(`<button id="btn-${i}">${holdCityState}</button>`);
+    console.log("i", i, "locStorArray[i].cityState", locStorArray[i].cityState);
+    console.log("holdCityState", holdCityState);
+  }
 }
 
 async function get5DayAndCurr () {
+  console.log("---In get5DayAndCurr");
   await get5DayForecast();
 
   requestUrlCurr = `https://api.openweathermap.org/data/2.5/weather?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
-  getCurrentWeath();
+  await getCurrentWeath();
 }
 
 async function get5DayForecast () {
+  console.log("---In get5DayForecast");
   try {
     const response = await fetch(requestUrl5Day);
     const data = await response.json();
@@ -118,7 +150,6 @@ async function get5DayForecast () {
     lattitude = data.city.coord.lat;
     longitude = data.city.coord.lon;
     cityId = data.city.id;
-    reqLatLong = true;
 
     // Load 5-Day Forecast array
     // "hourAdj = Math.ceil(currDate.getHours() / 3) - 1"  explained:
@@ -133,7 +164,7 @@ async function get5DayForecast () {
     fiveDayForecast = [];
    
     //Populate forecast array and cards on page
-    for (let i = 0; i < 5; i++) {
+    for (i = 0; i < 5; i++) {
       forecastIdx = (i + 1) * 8 - hourAdj;
       forecastTemp = data["list"][forecastIdx]["main"]["temp"];
       weatherDateInp = data["list"][forecastIdx]["dt_txt"];
@@ -167,6 +198,7 @@ async function get5DayForecast () {
 }
 
 async function getCurrentWeath () {
+  console.log("---In getCurrentWeath");
   try {
     const response = await fetch(requestUrlCurr);
     const data = await response.json();
@@ -261,6 +293,7 @@ async function getCurrentWeath () {
 
 // Retrieve city-searches array of "city-searches" objects from storage
 locStorArray = JSON.parse(localStorage.getItem("city-searches"));
+console.log("locStorArray after retrieve from storage", locStorArray);
 if (locStorArray === null) {
   locStorArray = []
 }
@@ -274,3 +307,18 @@ citySearchEl.on("submit",citySearchSubmit);
 // const requestURL = `http://api.openweathermap.org/geo/1.0/direct?q=${city},${state}&limit=1&appid=45dc14616eaf796db0039aab6f9100f4`;
 // const requestURL = `http://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=45dc14616eaf796db0039aab6f9100f4`;
   
+// function renderPrevSearches () {
+//   console.log("---In renderPrevSearches");
+//   // Clear previous searches display
+//   prevCitiesEL.html("");
+//   console.log("locStorArray in render func:",locStorArray);
+//   // prevSearchEl.addClass("strong-ovrd");  
+
+//   // If there were any stored cities, create them in section 
+//   // Initialize
+//   i = 0;
+//   $.each(locStorArray, function(i) {
+//     prevCitiesEL.append(`<button id="btn-${i}">${locStorArray[i].cityState}</button>`);
+//     console.log("i",i,"locStorArray[i].cityState",locStorArray[i].cityState);
+//   })
+// }
