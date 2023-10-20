@@ -112,6 +112,11 @@ async function citySearchSubmit(event) {
 
     // 4. Display previous search cityStage as buttons from array
     // renderPrevSearches();
+    prevCitiesEL.append(`<button id="btn-${cityStage.id}">${cityStage.cityState}</button>`);
+
+    cityStage = {id: "", cityState: "", lat: "", long: ""};
+
+    // Create and append button
   }
 }
 
