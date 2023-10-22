@@ -141,7 +141,6 @@ async function get5DayAndCurr () {
 }
 
 async function get5DayForecast () {
-  console.log("requestUrl5Day", requestUrl5Day);
   try {
     const response = await fetch(requestUrl5Day);
     const data = await response.json();

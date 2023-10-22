@@ -1,35 +1,42 @@
-# Work Day Scheduler - Tony Magrady
+# Weather Dashboard Search - Tony Magrady
 
 ## README Author
 Tony Magrady - Berkeley Full-Stack Web Development Bootcamp student <br>
--- September 22, 2023
+-- October 21, 2023
 
 ## Description
-Daily planner calendar webpage (for current day) that allows a user to save events for each hour of a typical working day (9am–5pm). It has color-coded hour intervals to highlight current time of day, before, and after.<br>
-The time slots are text fields for the activities of the day, which can be saved to local storage via save button and retrieved upon page load or refresh:  https://tonymagr.github.io/work-day-scheduler-3rd-party-apis/
+Weather Dashboard Search is built for a traveler who wants to see the weather outlook for multiple cities and plan a trip accordingly.
+Can enter search by city or city & state, which makes API call to openweathermap.org.
+The search renders current and forecast weather to the page.
+The search also saves search history in the form of a list of buttons and using local storage.
+When a button is clicked, the forecast for that city is recalled and displayed. Local storage stores unique id, lattitude and longitude of the city -  id for internal array lookup and lat and long for the API call.  The jQuery script features dynamically updated HTML and CSS.
+https://tonymagr.github.io/weather-dashboard-search/
 
-Module 5 skills and tools that I used in webpage deployment were:
-- HTML Access to CSS frameworks, jQuery library, and Day.js library
-- Day.js formatting
+Module 6 skills and tools that I used in webpage deployment were:
+- Use of 3rd party API calls; getting familiar with their documentation to know how best to contruct and use their API interface.
 - Dynamic styling updates with jQuery
+- Dynamic element creation with jQuery
 - jQuery event listeners
-- Use of JavaScript forEach method on all target DOM elements that are selected-All
-  - Amninder Singh, classmate of Aug-23 FS Bootcamp, assisted me here
+- New coding technique to manage dynamic rotation of previous search buttons
+- Refresher on local storage save and retrieval
 
 ## Website Image
-![Website Image](./Assets/images/work-day-planner-img.jpg)
+![Website Image](./Assets/img/deployed-weather-dashboard.jpg)
 
 ## Challenges
-I attempted to listen for click events of the Save buttons of all time slots through event delegation on the work-schedule container div and use of event.target, but I was not able to access the element text. I received assistance from a classmate (in Credits below) and changed technique to JavaScript forEach method to loop through selected elements from querySelectorAll. This worked.
+The biggest challenge was to resolve an issue with previous search buttons duplicating. This was due to not initializing an object that collects data on each search, and it caused the button text and the array (of button data) to get out of sync. A TA helped me figure out the issue. By initializing the object and also by directly appending the new button instead of refreshing the list of all buttons from storage every time, the issue was resolved. 
+Another challenge was to find the correct entries from the 5-day forecast calls to openweathermap.org. I made them at Noon each day as a representative time for each day's expected temperature, etc. The challenge was that the user can use the webpage at any time of day, and the future forecast is a rolling forecast 3 hours at a time. I used an hour adjustment addend to determine the needed index to the returned API data.
+Finally, there was a challenge to ensure the id for the right button could still be targeted after the first button in the list was removed. The table would always readjust the first index back to zero, but the new first button after old first button removal would be left with id > 0. The list of buttons had to keep an extra counter for the number of searches that pushed the number of buttons past its maximum (thus requiring to remove the first button).
 
 ## Installation
 N/A
 
 ## Usage
-Employees, managers, non-for-profit team members, and volunteers can use this Work Day Planner to save notable events by time and retrieve them later. It is good for class exercise, but a real-world improvement would be to expand this calendar to future and past days to maximize the use of the stored calendar information.
+Travelers who want to see the weather outlook one or more cities can plan their trip accordingly.
+The local storage behaves somewhat like local cache, such that each city searches are stored and retrieved locally. 
 
 ## Credits
-Amninder Singh, classmate of Aug-23 FS Bootcamp, assisted me on the use of JavaScript forEach method on all target DOM elements that are selected-All. (In this case to detect a click event on any save button in the hourly calendar.)
+A teacher's assistant (TA) helped me figure out an issue with previous search buttons duplicating.
 
 ## License
 MIT License
