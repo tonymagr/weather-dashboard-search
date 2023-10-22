@@ -9,7 +9,7 @@ Weather Dashboard Search is built for a traveler who wants to see the weather ou
 Can enter search by city or city & state, which makes API call to openweathermap.org.
 The search renders current and forecast weather to the page.
 The search also saves search history in the form of a list of buttons and using local storage.
-When a button is clicked, the forecast for that city is recalled and displayed. Local storage stores unique id, lattitude and longitude of the city -  id for internal array lookup and lat and long for the API call.  The jQuery script features dynamically updated HTML and CSS.
+When a button is clicked, the forecast for that city is recalled and displayed. Local storage stores unique id, lattitude and longitude of the city -  id for internal array lookup and lat and long for the API call.  The jQuery script features dynamically updated HTML and CSS. <br>
 https://tonymagr.github.io/weather-dashboard-search/
 
 Module 6 skills and tools that I used in webpage deployment were:
