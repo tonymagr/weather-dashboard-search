@@ -43,6 +43,11 @@ button:hover {
 label {
     display: block;
 }
+input {
+    font-size: 12px;
+    width: 200px;
+    height: 25px;
+}
 input, label {
     margin: 0.4rem 0rem;
 }

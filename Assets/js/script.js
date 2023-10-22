@@ -10,25 +10,39 @@ const prevCitiesEL = $("#prev-cities");
 const apiKey = "2829bb7521a6e57fb0393e7a19834658";
 let i, city, state, pos, cityNameInp, requestUrl5Day, requestUrlCurr, lattitude, longitude, cityId;
 let weatherDateInp, weatherDateConv, hourAdj, todayDt, iconCode, weatherIconUrl, fiveDayForecast;
-let forecastIdx, windSpeed, humidPerc, foundPrev, idxFirstButton;
+let forecastIdx, windSpeed, humidPerc, foundPrev, idxFirstButton, elemIdShift, responseStatus;
 let reqState = false;
-let reqLatLong = false;
 const currDate = new Date();
 
 //Local storage variables
 let locStorArray = [];
 let cityStage = {id: "", cityState: "", lat: "", long: ""};
 
-//function definitions
+//function declarations
 
 //target functions
 
+prevCitiesEL.on("click", async function(event) {
+  // Prevent the default behavior of refreshing form immediately
+  element = event.target;
+
+  if (element.matches("button")) {
+    // Adjust array index lookup by number of button list shifts (idxFirstButton) after reaching max buttons
+    elemIdShift = element.id.substring(4,5) - idxFirstButton;
+    lattitude = locStorArray[elemIdShift].lat;
+    longitude = locStorArray[elemIdShift].long;
+    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
+    
+    // Call to display current and forecast weather with saved lat and long
+    await get5DayAndCurr();
+  }
+});
+
 async function citySearchSubmit(event) {
-  // Prevent the default behavior
+  // Prevent the default behavior of refreshing form immediately
   event.preventDefault();
 
   cityNameInp = searchCityEl.val().trim();
-  reqLatLong = false;
   reqState = false;
 
   // Check for input errors
@@ -55,9 +69,7 @@ async function citySearchSubmit(event) {
   $('input[type="text"]').val("");
 
   // Construct URL for city-state or just city
-  if (reqLatLong) {
-    requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
-  } else if (reqState) {
+  if (reqState) {
     requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast/?q=${city},${state},USA&units=imperial&appid=${apiKey}`;
   } else {
     requestUrl5Day = `https://api.openweathermap.org/data/2.5/forecast?q=${city},USA&units=imperial&appid=${apiKey}`;
@@ -74,7 +86,7 @@ async function citySearchSubmit(event) {
     }
   }
   
-  // if city was not already searched, do three or (conditionally) four things listed below:
+  // if city was not already searched, do four or (conditionally) five things listed below:
   if (!foundPrev) {
     // 1. Add to recent searches table
     cityStage.id = cityId;
@@ -83,13 +95,11 @@ async function citySearchSubmit(event) {
     cityStage.long = longitude;
     locStorArray.push(cityStage);
     
-    console.log("locStorArray bef", locStorArray);
-    // 2. Check if one over max - should be at most 8 buttons at one time
+    // 2a and 2b. Check if one over max - should be at most 8 buttons at one time
     if (locStorArray.length >= 9) {
-      // Remove first (oldest) item from array
+      // a. Remove item 0 (oldest item) from array
       locStorArray.shift();
-      console.log("locStorArray aft", locStorArray);
-      // Remove first (oldest) button from page
+      // a. Remove first (oldest) button from page
       $(`#btn-${idxFirstButton}`).remove();
       idxFirstButton++;
     }
@@ -97,10 +107,12 @@ async function citySearchSubmit(event) {
     // 3. Save updated array to storage
     localStorage.setItem("city-searches", JSON.stringify(locStorArray));
 
-    // 4. Display previous search cityStage as buttons from array
-    // renderPrevSearches();
-    prevCitiesEL.append(`<button id="btn-${cityStage.id}">${cityStage.cityState}</button>`);
+    // 4. Add new button to end of list
+    // Index is new last item in array, length - 1. Adjust by idxFirstButton which tracks # of shifts
+    i = locStorArray.length - 1 + idxFirstButton;
+    prevCitiesEL.append(`<button id="btn-${i}">${cityStage.cityState}</button>`);
 
+    // 5. Reinitialize stage record for reuse
     cityStage = {id: "", cityState: "", lat: "", long: ""};
 
     // Create and append button
@@ -108,9 +120,11 @@ async function citySearchSubmit(event) {
 }
 
 function renderPrevSearches () {
+  // Clear section and identify first button as 0 on refresh
   prevCitiesEL.html("");
   idxFirstButton = 0;
 
+  // Build button list on page
   for (i = 0; i < locStorArray.length; i++) {
     let holdCityState = locStorArray[i].cityState;
     prevCitiesEL.append(`<button id="btn-${i}">${holdCityState}</button>`);
@@ -120,16 +134,21 @@ function renderPrevSearches () {
 async function get5DayAndCurr () {
   await get5DayForecast();
 
-  requestUrlCurr = `https://api.openweathermap.org/data/2.5/weather?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
-  await getCurrentWeath();
+  if (responseStatus === 200) {
+    requestUrlCurr = `https://api.openweathermap.org/data/2.5/weather?lat=${lattitude}&lon=${longitude}&units=imperial&appid=${apiKey}`;
+    await getCurrentWeath();
+  }
 }
 
 async function get5DayForecast () {
+  console.log("requestUrl5Day", requestUrl5Day);
   try {
     const response = await fetch(requestUrl5Day);
     const data = await response.json();
+    responseStatus = response.status;
     if (!response.ok) {
       console.log(`Open weather call for 5 day forecast: ${response.statusText}`);
+      alert(`Requested city not found: ${cityNameInp}. Message: ${response.statusText}`);
       return;
     }
     //Access result fields
@@ -166,7 +185,6 @@ async function get5DayForecast () {
 
       // Initialize card and display on page
       let forecastDayEl = $(`#forecast-day-${i}`);
-
       forecastDayEl.html("");
       forecastDayEl.append(`<h5>${weatherDateConv}</h5>`);
       weatherIconUrl = `https://openweathermap.org/img/wn/${iconCode}@2x.png`;
@@ -185,8 +203,10 @@ async function getCurrentWeath () {
   try {
     const response = await fetch(requestUrlCurr);
     const data = await response.json();
+    responseStatus = response.status;
     if (!response.ok) {
       console.log(`Open weather call for current day: ${response.statusText}`);
+      alert(`Requested city not found: ${cityNameInp}. Message: ${response.statusText}`);
       return;
     }
     //Display result fields
@@ -205,73 +225,9 @@ async function getCurrentWeath () {
   }
 }
 
-// // Previous searches and storage management
-// // ----------------------------------------
-
-// function searchNameFormSubmit(event) {
-//   // Prevent the default behavior
-//   event.preventDefault();
-  
-//   // Max saves reached
-//   if (locStorArray.length >= 7) {
-//   }
-
-//   // Save in local storage and internal array
-//   movieEntry.schName = searchName;
-//   movieEntry.movTitle = mTitle;
-//   movieEntry.yr = mYear;
-//   movieEntry.omdbUrl = requestURL;
-//   locStorArray.push(movieEntry);
-  
-//   localStorage.setItem("city-searches", JSON.stringify(locStorArray));
-
-//   // Clear and call to display updated movie searches
-//   renderPrevSearches();
-// }
-
-// prevSearchEl.on("click", function(event) {
-//   element = event.target;
-
-//   if (element.matches("button") && element.className.substring(10,30).trim() === "view-button") {
-//     // View movie info
-//     // Button IDs are in format btnx0 or btnx1 where x is the li row. Element/buttonid[3] is the 4th character.
-//     i = element.id[3];
-//     requestURL = locStorArray[i].omdbUrl
-
-//     renderAllMovieData();
-//   }
-
-//   if (element.matches("button") && element.className.substring(10,30).trim() === "delete-button") {
-//     // Delete saved search (li) row
-//     // Button IDs are in format btnx0 or btnx1 where x is the li row. Element/buttonid[3] is the 4th character.
-//     i = element.id[3];
-//     locStorArray.splice(i,1);
-//     // Call to remove item from local storage
-//     resetLocalStorage();
-
-//     // Redisplay form
-//     renderPrevSearches();
-//   }
-// });
-
-// function resetLocalStorage () {
-//   // Delete local storage, to be reloaded from saved array
-//   localStorage.removeItem("city-searches");
-
-//   // Reload local storage, at present with one less row after delete button
-//   for (i = 0; i < locStorArray.length; i++) {
-//     movieEntry.schName = locStorArray[i].schName;
-//     movieEntry.movTitle = locStorArray[i].movTitle;
-//     movieEntry.yr = locStorArray[i].yr;
-//     movieEntry.omdbUrl = locStorArray[i].omdbUrl;
-  
-//     localStorage.setItem("city-searches", JSON.stringify(locStorArray));
-//   }
-// }
-
-//-----
-// Main
-//-----
+//------------------------
+// Executes on start-up
+//------------------------
 
 // Retrieve city-searches array of "city-searches" objects from storage
 locStorArray = JSON.parse(localStorage.getItem("city-searches"));
@@ -281,30 +237,5 @@ if (locStorArray === null) {
 // Display previous search cities as buttons from array
 renderPrevSearches();
 
+// Await submit
 citySearchEl.on("submit",citySearchSubmit);
-
-
-// - Throwaway
-// const requestURL = `http://api.openweathermap.org/geo/1.0/direct?q=${city},${state}&limit=1&appid=45dc14616eaf796db0039aab6f9100f4`;
-// const requestURL = `http://api.openweathermap.org/data/2.5/forecast?q=${city}&appid=45dc14616eaf796db0039aab6f9100f4`;
-  
-// function renderPrevSearches () {
-//   console.log("---In renderPrevSearches");
-//   // Clear previous searches display
-//   prevCitiesEL.html("");
-//   console.log("locStorArray in render func:",locStorArray);
-//   // prevSearchEl.addClass("strong-ovrd");  
-
-//   // If there were any stored cities, create them in section 
-//   // Initialize
-//   i = 0;
-//   $.each(locStorArray, function(i) {
-//     prevCitiesEL.append(`<button id="btn-${i}">${locStorArray[i].cityState}</button>`);
-//     console.log("i",i,"locStorArray[i].cityState",locStorArray[i].cityState);
-//   })
-// }
-
-  // let tblIdx = locStorArray.findIndex(function(city) {
-  //   console.log("Found in prev search-,city,",city,"locStorArray:",locStorArray,"cityId:",cityId);  
-  //   return city.id == cityId;
-  // });
