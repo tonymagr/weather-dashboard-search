@@ -13,6 +13,7 @@
 }
 .mid-text {
     font-size: 1rem;
+    margin-left: 5px;
 }
 .strong {
     font-weight: bold;
@@ -25,6 +26,19 @@ p {
     margin: 0;
     padding: .2em;
     font-size: 12px;
+}
+button {
+    width: 200px;
+    height: 25px;
+    font-size: 12px;
+    margin: 4px;
+    text-align: center;
+    background-color: lightgray;
+    border-radius: 0.3rem;
+    border: 1px solid transparent;
+}
+button:hover {
+    background-color: rgb(177, 177, 177);
 }
 label {
     display: block;
@@ -276,7 +290,7 @@ aside {
 .card .card-rounded .card-header {
     border-radius: calc(0.18rem - 1px) calc(0.18rem - 1px) 0 0;
 }
-.btn {
+/* .btn {
     text-align: center;
     display: inline-block;
     padding: 0.5rem 1.2rem;
@@ -286,14 +300,11 @@ aside {
     border-radius: 0.3rem;
     border: 1px solid transparent;
     outline: none;
-}
-.btn:hover {
-    background-color: #CECECE;
-}
-.btn-basic {
-    border-radius: 0.3rem;
+} */
+/* .btn-basic { */
+    /* border-radius: 0.3rem; */
     /* font-weight: lighter; */
-}
+/* } */
 .btn.btn-squared {
     border-radius: 0;
 }
@@ -345,9 +356,12 @@ aside {
 .btn.btn-dark:hover {
     background-color: #5F5F5F;
 }
-.btn.btn-blue {
-    background-color: #008AF2;
+.btn-blue {
+    background-color: #55b2f8;
     color: white;
+}
+.btn-blue:hover {
+    background-color: #008AF2;
 }
 .btn.btn-white {
     background-color: #FFFFFF;
